@@ -1,0 +1,161 @@
+---
+title: "Pricing defaultable bonds in the shadow-intensity framework"
+author: "Jean-Paul Renne"
+date: "HEC Lausanne"
+bibliography: ["ref.bib"]
+biblio-style: "apalike"
+link-citations: true
+output:
+  #bookdown::pdf_document2: default
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+  number_sections: true
+---
+
+This page illustrates the functioning of codes aimed at pricing defaultable bonds in the context of shadow intensities. Section \@ref(sec:Model) presents the model. Section \@ref(sec:Example).
+
+
+
+[//]: <> (Below: change in title format:)
+
+<style type="text/css">
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 30px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 24px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 18px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 14px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+
+# Model {#sec:Model}
+
+The state vector $X_t$ follows a Gaussian VAR(1) process:
+$$
+X_t = \mu + \Phi X_{t-1}+ \Sigma\varepsilon_t,
+$$
+with $\varepsilon_t \sim \mathcal{N}(0,Id)$, where $Id$ denotes the identity matrix.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(vars)
+#load(file="SavedData.Rdat")
+```
+
+
+# R Markdown
+
+## Subsection
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+# Loading the dataset
+
+```{r loaddataset}
+1+1
+f <- function(x){
+  2*x + 2
+}
+y <- rnorm(10)
+plot(y)
+```
+
+# Question 7
+
+
+```{r cars}
+summary(cars)
+```
+
+
+
+::: {.theorem #essai}
+This is a `theorem` environment that can contain **any**
+_Markdown_ syntax.
+:::
+::: {.proof}
+Nice proof.
+:::
+
+
+How is Theorem \@ref(thm:essai)?
+
+# Including Plots {#section:plots}
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE,fig.cap="This is the caption"}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+\begin{eqnarray}
+F(x) &=& 1 \\
+f(y) &=& 2 \\
+\int_{x=0}^\infty f(x) dx &=& 0
+\end{eqnarray}
+
+This was equation \@ref(eq:essaiRef). See also Section \@ref(section:plots).
+
+\begin{equation}
+F(x) = 1 (\#eq:essaiRef)
+\end{equation}
+
+```{r essai_fct_f}
+f <- function(x){3*x}
+f(3)
+```
+
+* This is a list.
+* This [website](https://www.google.com) is useful.
+* The analysis builds on @dungey2009extending
+
+
+```{r essaia}
+a <- 3
+print(a)
+```
+
+
+```{r essaia2}
+2*a
+```
+
+# Question 7
+
+Create some important variables for the reference person such as dummy variables for female ($female$, 1 if female, 0 otherwise); race ($black$, 1 if black); retired ($retired$, 1 if labour force participation $=$ 5); disabled (1 if labour force participation $=$ 6); not married ($notmar$, 1 if marital status is different from being married); full-time work ($workft$, 1 if works full time); pat-time work ($workpt$, 1 if works part time).
+
+```{r create_variables}
+1+1
+```
+
+
