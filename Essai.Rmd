@@ -51,14 +51,14 @@ pre { /* Code block - determines code spacing between lines */
 
 # The context 
 
-@Pallara_Renne_2023 and @Renne_Pallara_2023 investigate the pricing the sovereign credit risk in the context of shadow-intensity frameworks. In such framework, the pricing of defaultable bonds requires the computation of specific conditional expectations of the form:
+@Pallara_Renne_2023 and @Renne_Pallara_2023 investigate the pricing the sovereign credit risk in the context of shadow-intensity frameworks. In that type of framework, the prices of defaultable bonds are given by conditional expectations of the form:
 \begin{equation}
 \mathbb{E}_t(\exp[\color{blue}{-z_{t+1}-\dots-z_{t+h}}-\max(0,\lambda_{t+1})-\dots -\max(0,\lambda_{t+h})]),(\#eq:condExp)
 \end{equation}
-where both $z_t$ and $\lambda_t$ are affine functions of the state vector $x_t$, and where $x_t$ follows a Gaussian vector auto-regressive (VAR) model:
+where $z_t$ (risk-free short-term rate) and $\lambda_t$ (*shadow default intensity*) are affine functions of the state vector $x_t$, and where $x_t$ follows a Gaussian vector auto-regressive (VAR) model:
 \begin{eqnarray*}
 z_t &=& \dot{a}'x_t + \dot{b}\\
-\lambda_t &=& a'x_t + b
+\lambda_t &=& a'x_t + b,
 \end{eqnarray*}
 and
 \begin{equation}
@@ -68,7 +68,7 @@ with $\varepsilon_t \sim \mathcal{N}(0,Id)$ (where $Id$ denotes the identity mat
 
 Equation \@ref(eq:condExp) gives the risk-neutral price of a bond of maturity $h$, issued by an entity whose default intensity is $\underline{\lambda}_t = \max(0,\lambda_t)$. (That is, the conditional default probability of the issuer, on date $t$, is $\exp(-\underline{\lambda}_t)$.)
 
-Absent the blue terms, the conditional expectations appearing in \@ref(eq:condExp) would be of the same type as the ones considered in the shadow-rate literature (see @Black_1995). In that case, one could for instance used the approaches proposed by @Priebsch_2013 or @Wu_Xia_2016, to calculate approximations for these conditional expectations. @Pallara_Renne_2023 and @Renne_Pallara_2023 extend the approach of @Wu_Xia_2016 to compute approximate values to \@ref(eq:condExp). This page uses the latter approach, employing codes contained in package `TSModels` to implement this approach.
+Absent the blue terms, the conditional expectations appearing in \@ref(eq:condExp) would be of the same type as the ones considered in the shadow-rate literature (see @Black_1995). In that case, one could for instance use the approaches proposed by @Priebsch_2013 or @Wu_Xia_2016, to calculate approximations for these conditional expectations. @Pallara_Renne_2023 and @Renne_Pallara_2023 extend the approach of @Wu_Xia_2016 to compute approximate values to \@ref(eq:condExp). This page uses the latter approach, employing codes contained in package `TSModels` to implement this approach.
 
 To start with, load package `TSModels`:
 
@@ -83,7 +83,7 @@ install_github("jrenne/TSModels")
 
 ## Specifications
 
-Consider a two-factor model, that is $x_t = [x_{1,t},x_{2,t}]'$. Assume that $z_t$ (that can be interpreted as the risk-free short term rate) depends on $x_{1,t}$ only. And $\lambda_t$ (the shadow default intensity) depends on $x_{2,t}$.
+Consider a two-factor model, that is $x_t = [x_{1,t},x_{2,t}]'$. Assume that $z_t$ (that can be interpreted as the risk-free short term rate) depends on $x_{1,t}$ only, and that $\lambda_t$ (the shadow default intensity) depends on $x_{2,t}$.
 
 We consider the following VAR dynamics for $x_t$:
 $$
@@ -175,7 +175,7 @@ spreads <- y - y_RF
 
 Let us plot the term strcutures of yields and spreads for the date on which we observe the highest $\lambda_t$:
 
-```{r chartspreads, fig.cap="Term structures of risk-free yields (in red), and credit-risky yields (in black). Solid lines (respectively dashed lines) correspond to the date where $\\lambda_t$ is the highest (resp. the lowest)."}
+```{r chartspreads, fig.cap="Term structures of risk-free yields (in red), and credit-risky yields (in black). Solid lines (respectively dashed lines) correspond to the date where $\\lambda_t$ is the highest (resp. the lowest). These two dates are indicated by vertical lines on the previous figure."}
 plot(y[t.max.lambda,],type="l",ylim=c(0,max(y)),xlab="maturity",ylab="yields",lwd=2)
 lines(y_RF[t.max.lambda,],col="red",lwd=2)
 lines(y_RF[t.min.lambda,],col="red",lwd=2,lty=2)
