@@ -55,7 +55,7 @@ pre { /* Code block - determines code spacing between lines */
 \begin{equation}
 \mathbb{E}_t(\exp[\color{blue}{-z_{t+1}-\dots-z_{t+h}}-\max(0,\lambda_{t+1})-\dots -\max(0,\lambda_{t+h})]),(\#eq:condExp)
 \end{equation}
-where $z_t$ (risk-free short-term rate) and $\lambda_t$ (*shadow default intensity*) are affine functions of the state vector $x_t$, and where $x_t$ follows a Gaussian vector auto-regressive (VAR) model:
+where $z_t$ (risk-free short-term rate) and $\lambda_t$ (*shadow default intensity*) are affine functions of the state vector $x_t$. In addition, $x_t$ follows a Gaussian vector auto-regressive (VAR) model:
 \begin{eqnarray*}
 z_t &=& \dot{a}'x_t + \dot{b}\\
 \lambda_t &=& a'x_t + b,
@@ -68,9 +68,9 @@ with $\varepsilon_t \sim \mathcal{N}(0,Id)$ (where $Id$ denotes the identity mat
 
 Equation \@ref(eq:condExp) gives the risk-neutral price of a bond of maturity $h$, issued by an entity whose default intensity is $\underline{\lambda}_t = \max(0,\lambda_t)$. (That is, the conditional default probability of the issuer, on date $t$, is $\exp(-\underline{\lambda}_t)$.)
 
-Absent the blue terms, the conditional expectations appearing in \@ref(eq:condExp) would be of the same type as the ones considered in the shadow-rate literature (see @Black_1995). In that case, one could for instance use the approaches proposed by @Priebsch_2013 or @Wu_Xia_2016, to calculate approximations for these conditional expectations. @Pallara_Renne_2023 and @Renne_Pallara_2023 extend the approach of @Wu_Xia_2016 to compute approximate values to \@ref(eq:condExp). This page uses the latter approach, employing codes contained in package `TSModels` to implement this approach.
+Absent the blue terms, the conditional expectations appearing in \@ref(eq:condExp) would be of the same type as the ones considered in the shadow-rate literature (see @Black_1995). In that case, one could for instance use the approaches proposed by @Priebsch_2013 or @Wu_Xia_2016 to calculate approximations for these conditional expectations. @Pallara_Renne_2023 and @Renne_Pallara_2023 extend the approach of @Wu_Xia_2016 to compute approximate values to \@ref(eq:condExp). Th present page uses the latter approach, employing codes contained in package `TSModels` to implement this approach.
 
-To start with, load package `TSModels`:
+To start with, load package `TSModels`. This library is available on GitHub and can be accessed using the following lines of code:
 
 ```{r essai, eval=FALSE}
 install.packages("devtools")
@@ -176,7 +176,8 @@ spreads <- y - y_RF
 Let us plot the term strcutures of yields and spreads for the date on which we observe the highest $\lambda_t$:
 
 ```{r chartspreads, fig.cap="Term structures of risk-free yields (in red), and credit-risky yields (in black). Solid lines (respectively dashed lines) correspond to the date where $\\lambda_t$ is the highest (resp. the lowest). These two dates are indicated by vertical lines on the previous figure."}
-plot(y[t.max.lambda,],type="l",ylim=c(0,max(y)),xlab="maturity",ylab="yields",lwd=2)
+plot(y[t.max.lambda,],type="l",ylim=c(0,max(y)),xlab="maturity",ylab="yields",
+     main="Term structures of bond yields (risk-free and defaultable bonds)",lwd=2)
 lines(y_RF[t.max.lambda,],col="red",lwd=2)
 lines(y_RF[t.min.lambda,],col="red",lwd=2,lty=2)
 lines(y[t.min.lambda,],lwd=2,lty=2)
@@ -204,7 +205,9 @@ aux2 <- apply(aux1,1,cumprod)
 # Compute averages of prices across simulated trajectories:
 simul.prices <- apply(aux2,1,mean)
 # Compare with output of compute.condit.Exp:
-rbind(simul.prices,res$E.n[t,])
+plot(res$E.n[t,],lwd=2,main="Approximate formula versus Monte-Carlo approach")
+lines(simul.prices)
+legend("topright",c("Approximate formula","Monte-Carlo"),lty=c(NaN,1),pch=c(1,NaN),lwd=c(2,1))
 ```
 
 # References {-}
