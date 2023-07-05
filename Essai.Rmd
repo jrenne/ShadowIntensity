@@ -13,15 +13,13 @@ output:
   number_sections: true
 ---
 
-This page illustrates the functioning of codes aimed at pricing defaultable bonds in the context of shadow intensities. Section \@ref(sec:Model) presents the model. Section \@ref(sec:Example).
-
 
 
 [//]: <> (Below: change in title format:)
 
 <style type="text/css">
 body{ /* Normal  */
-      font-size: 12px;
+      font-size: 14px;
   }
 td {  /* Table  */
   font-size: 8px;
@@ -51,111 +49,163 @@ pre { /* Code block - determines code spacing between lines */
 }
 </style>
 
+# The context 
 
-
-# Model {#sec:Model}
-
-The state vector $X_t$ follows a Gaussian VAR(1) process:
-$$
-X_t = \mu + \Phi X_{t-1}+ \Sigma\varepsilon_t,
-$$
-with $\varepsilon_t \sim \mathcal{N}(0,Id)$, where $Id$ denotes the identity matrix.
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(vars)
-#load(file="SavedData.Rdat")
-```
-
-
-# R Markdown
-
-## Subsection
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-
-# Loading the dataset
-
-```{r loaddataset}
-1+1
-f <- function(x){
-  2*x + 2
-}
-y <- rnorm(10)
-plot(y)
-```
-
-# Question 7
-
-
-```{r cars}
-summary(cars)
-```
-
-
-
-::: {.theorem #essai}
-This is a `theorem` environment that can contain **any**
-_Markdown_ syntax.
-:::
-::: {.proof}
-Nice proof.
-:::
-
-
-How is Theorem \@ref(thm:essai)?
-
-# Including Plots {#section:plots}
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE,fig.cap="This is the caption"}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-\begin{eqnarray}
-F(x) &=& 1 \\
-f(y) &=& 2 \\
-\int_{x=0}^\infty f(x) dx &=& 0
-\end{eqnarray}
-
-This was equation \@ref(eq:essaiRef). See also Section \@ref(section:plots).
-
+@Pallara_Renne_2023 and @Renne_Pallara_2023 investigate the pricing the sovereign credit risk in the context of shadow-intensity frameworks. In such framework, the pricing of defaultable bonds requires the computation of specific conditional expectations of the form:
 \begin{equation}
-F(x) = 1 (\#eq:essaiRef)
+\mathbb{E}_t(\exp[\color{blue}{-z_{t+1}-\dots-z_{t+h}}-\max(0,\lambda_{t+1})-\dots -\max(0,\lambda_{t+h})]),(\#eq:condExp)
 \end{equation}
+where both $z_t$ and $\lambda_t$ are affine functions of the state vector $x_t$, and where $x_t$ follows a Gaussian vector auto-regressive (VAR) model:
+\begin{eqnarray*}
+z_t &=& \dot{a}'x_t + \dot{b}\\
+\lambda_t &=& a'x_t + b
+\end{eqnarray*}
+and
+\begin{equation}
+x_t = \mu + \Phi x_{t-1}+ \Sigma\varepsilon_t,(\#eq:var)
+\end{equation}
+with $\varepsilon_t \sim \mathcal{N}(0,Id)$ (where $Id$ denotes the identity matrix).
 
-```{r essai_fct_f}
-f <- function(x){3*x}
-f(3)
+Equation \@ref(eq:condExp) gives the risk-neutral price of a bond of maturity $h$, issued by an entity whose default intensity is $\underline{\lambda}_t = \max(0,\lambda_t)$. (That is, the conditional default probability of the issuer, on date $t$, is $\exp(-\underline{\lambda}_t)$.)
+
+Absent the blue terms, the conditional expectations appearing in \@ref(eq:condExp) would be of the same type as the ones considered in the shadow-rate literature (see @Black_1995). In that case, one could for instance used the approaches proposed by @Priebsch_2013 or @Wu_Xia_2016, to calculate approximations for these conditional expectations. @Pallara_Renne_2023 and @Renne_Pallara_2023 extend the approach of @Wu_Xia_2016 to compute approximate values to \@ref(eq:condExp). This page uses the latter approach, employing codes contained in package `TSModels` to implement this approach.
+
+To start with, load package `TSModels`:
+
+```{r essai, eval=FALSE}
+install.packages("devtools")
+library(devtools)
+install_github("jrenne/TSModels")
 ```
 
-* This is a list.
-* This [website](https://www.google.com) is useful.
-* The analysis builds on @dungey2009extending
 
+# A numerical example
 
-```{r essaia}
-a <- 3
-print(a)
+## Specifications
+
+Consider a two-factor model, that is $x_t = [x_{1,t},x_{2,t}]'$. Assume that $z_t$ (that can be interpreted as the risk-free short term rate) depends on $x_{1,t}$ only. And $\lambda_t$ (the shadow default intensity) depends on $x_{2,t}$.
+
+We consider the following VAR dynamics for $x_t$:
+$$
+x_t = \left[\begin{array}{cc}0.9 & 0 \\ 0 & 0.9\end{array}\right] x_{t-1} +
+\left[\begin{array}{cc}1 & 0.1 \\ 0 & 1\end{array}\right]\varepsilon_t,
+$$
+which determines $\mu$, $\Phi$, and $\Sigma$ of \@ref(eq:var).
+
+Further, we want $z_t$ (respectively $\lambda_t$) to be of mean 2\% (respectively 0) and of standard deviation $1\%$ (resp. 2/%).
+
+Let us code these specifications:
+
+```{r settings}
+Phi_x <- .9 * diag(2) # set Phi
+Sigma_x <- diag(2) # set Sigma
+Sigma_x[1,2] <- .1
+Mu_x <- matrix(0,2,1) # set mu
+
+stdv.z      <- .01 # set the unconditional std dev of z
+stdv.lambda <- .02 # set the unconditional std dev of lambda
+
+# Compute the unconditional variance of x_t:
+uncond.Variance.X <- matrix(solve(diag(2*2) - Phi_x %x% Phi_x) %*%
+                              c(Sigma_x %*% t(Sigma_x)),2,2)
+
+# Deduce a and a.dot:
+a.dot <- matrix(c(stdv.z/sqrt(uncond.Variance.X[1,1]),0))
+a     <- matrix(c(0,stdv.lambda/sqrt(uncond.Variance.X[2,2])))
+
+# Set the unconditional means of and lambda:
+b.dot <- .02
+b     <- .0
+```
+
+## Simulations
+
+Let us have a look at simulated paths for $z_t$ and $\lambda_t$:
+
+```{r simulation1}
+library(TSModels)
+
+nb.periods <- 200
+X <- simul.X(Phi_x,Mu_x,Sigma_x,nb.periods)
+z <- b.dot + a.dot[1] * X[1,1,]
+lambda <- b + a[2] * X[2,1,]
+```
+
+```{r simulation2, fig.cap="This plots simulated paths for $z_t$ (risk-free short-term rate) and $\\lambda_t$ (shadow intensity). The blue dotted line, on the right-hand-side plot, is the effective intensity, that is $\\max(0,\\lambda_t)$. The vertical lines indicate those dates where lambda is minimal and maximal.", echo=FALSE}
+par(mfrow=c(1,2))
+plot(z,type="l",xlab="",main=expression(z[t]))
+plot(lambda,type="l",xlab="",main=expression(lambda[t]))
+abline(h=0,col="grey")
+lines(pmax(0,lambda),col="blue",lwd=2,lty=3)
+t.min.lambda <- which(lambda==min(lambda))
+t.max.lambda <- which(lambda==max(lambda))
+abline(v=t.min.lambda,col="red")
+abline(v=t.max.lambda,col="red",lty=2)
+```
+
+# Bond pricing {#sec:Model}
+
+Let us now evaluate the conditional expectations of \@ref(eq:condExp), for $h=\{1,\dots,10\}$. For that, we make use of function `compute.condit.Exp` of package `TSModels`.
+
+```{r computeExp, fig.cap="This is the caption"}
+H <- 10
+res <- compute.condit.Exp(a,b,a.dot,b.dot,
+                          Phi_x,Mu_x,Sigma_x,
+                          X=cbind(X[1,1,],X[2,1,]),
+                          max.h = H)
+t.min.lambda <- which(lambda==min(lambda))
+t.max.lambda <- which(lambda==max(lambda))
+rbind(res$E.n[t.max.lambda,], #approximate values of the conditional expect. for date t
+      -log(res$E.n[t.max.lambda,])/(1:H))
+```
+
+The last two lines respectively give, for the date featuring the highest $\lambda_t$, the term structures of the bond prices and of associated yields-to-maturity.
+
+Let us now compute credit-risk-free bond prices. This is obtained by taking $a=0$ and $b=0$ (so that $\lambda_t=0$): 
+
+```{r riskfree, fig.cap="This is the caption"}
+res0 <- compute.condit.Exp(a*0.00001,b*0.00001,a.dot,b.dot,
+                          Phi_x,Mu_x,Sigma_x,
+                          X=cbind(X[1,1,],X[2,1,]),
+                          max.h = H)
+y       <- - log(res$E.n) / t(matrix(1:H,H,nb.periods))
+y_RF    <- - log(res0$E.n) / t(matrix(1:H,H,nb.periods))
+spreads <- y - y_RF
+```
+
+Let us plot the term strcutures of yields and spreads for the date on which we observe the highest $\lambda_t$:
+
+```{r chartspreads, fig.cap="Term structures of risk-free yields (in red), and credit-risky yields (in black). Solid lines (respectively dashed lines) correspond to the date where $\\lambda_t$ is the highest (resp. the lowest)."}
+plot(y[t.max.lambda,],type="l",ylim=c(0,max(y)),xlab="maturity",ylab="yields",lwd=2)
+lines(y_RF[t.max.lambda,],col="red",lwd=2)
+lines(y_RF[t.min.lambda,],col="red",lwd=2,lty=2)
+lines(y[t.min.lambda,],lwd=2,lty=2)
 ```
 
 
-```{r essaia2}
-2*a
+# Check formula using simulations
+
+In this section, we calculate the conditional expectation given in \@ref(eq:condExp) using Monte-Carlo simulations, for different maturities $h$. We will then compare these prices with the ones resulting from function `compute.condit.Exp`. 
+
+We consider the date on which $\lambda_t$ is the highest.
+
+
+```{r loaddataset, fig.cap="This is the caption"}
+nb.replics <- 10000 # Number of simulated trajectories
+t  <- t.max.lambda # date on which cond. expect. are computed
+Xt <- matrix(X[,1,t],ncol=1) # state vector on that date
+
+# Simulate trajectories starting from Xt:
+X <- simul.X(Phi_x,Mu_x,Sigma_x,nb.periods=H,X0 = Xt,nb.replics = nb.replics)
+# Compute prices for each trajectory:
+aux1 <- apply(X,c(2,3),function(x){exp(- b.dot - t(x)%*%a.dot -
+                                        pmax(0,b + t(x)%*%a))})
+aux2 <- apply(aux1,1,cumprod)
+# Compute averages of prices across simulated trajectories:
+simul.prices <- apply(aux2,1,mean)
+# Compare with output of compute.condit.Exp:
+rbind(simul.prices,res$E.n[t,])
 ```
 
-# Question 7
-
-Create some important variables for the reference person such as dummy variables for female ($female$, 1 if female, 0 otherwise); race ($black$, 1 if black); retired ($retired$, 1 if labour force participation $=$ 5); disabled (1 if labour force participation $=$ 6); not married ($notmar$, 1 if marital status is different from being married); full-time work ($workft$, 1 if works full time); pat-time work ($workpt$, 1 if works part time).
-
-```{r create_variables}
-1+1
-```
-
+# References {-}
 
