@@ -13,7 +13,10 @@ output:
   number_sections: true
 ---
 
-
+<!-- PUT MANUALLY index.html IN THE DOCS FOLDER. -->
+<!-- PUT MANUALLY index.html IN THE DOCS FOLDER. -->
+<!-- PUT MANUALLY index.html IN THE DOCS FOLDER. -->
+<!-- PUT MANUALLY index.html IN THE DOCS FOLDER. -->
 
 [//]: <> (Below: change in title format:)
 
