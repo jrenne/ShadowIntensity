@@ -194,7 +194,7 @@ In this section, we calculate the conditional expectation given in \@ref(eq:cond
 We consider the date on which $\lambda_t$ is the highest.
 
 
-```{r loaddataset, fig.cap="This is the caption"}
+```{r loaddataset, fig.cap="Comparison between formula-based prices and Monte-Carlo-based defaultable bond prices."}
 nb.replics <- 10000 # Number of simulated trajectories
 t  <- t.max.lambda # date on which cond. expect. are computed
 Xt <- matrix(X[,1,t],ncol=1) # state vector on that date
