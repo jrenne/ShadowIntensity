@@ -55,7 +55,7 @@ pre { /* Code block - determines code spacing between lines */
 \begin{equation}
 \mathbb{E}_t(\exp[\color{blue}{-z_{t+1}-\dots-z_{t+h}}-\max(0,\lambda_{t+1})-\dots -\max(0,\lambda_{t+h})]),(\#eq:condExp)
 \end{equation}
-where $z_t$ (risk-free short-term rate) and $\lambda_t$ (*shadow default intensity*) are affine functions of the state vector $x_t$. In addition, $x_t$ follows a Gaussian vector auto-regressive (VAR) model:
+where $z_t$ (risk-free short-term rate) and $\lambda_t$ (*shadow default intensity*) are affine functions of the state vector $x_t$. In addition, $x_t$ follows a Gaussian vector auto-regressive (VAR) model. That is, we have:
 \begin{eqnarray*}
 z_t &=& \dot{a}'x_t + \dot{b}\\
 \lambda_t &=& a'x_t + b,
@@ -66,7 +66,7 @@ x_t = \mu + \Phi x_{t-1}+ \Sigma\varepsilon_t,(\#eq:var)
 \end{equation}
 with $\varepsilon_t \sim \mathcal{N}(0,Id)$ (where $Id$ denotes the identity matrix).
 
-Equation \@ref(eq:condExp) gives the risk-neutral price of a bond of maturity $h$, issued by an entity whose default intensity is $\underline{\lambda}_t = \max(0,\lambda_t)$. (That is, the conditional default probability of the issuer, on date $t$, is $\exp(-\underline{\lambda}_t)$.)
+Equation \@ref(eq:condExp) gives the risk-neutral price of a bond of maturity $h$, issued by an entity whose default intensity is $\underline{\lambda}_t = \max(0,\lambda_t)$. (That is, the conditional default probability of the issuer, on date $t$, is $1-\exp(-\underline{\lambda}_t)$.)
 
 Absent the blue terms, the conditional expectations appearing in \@ref(eq:condExp) would be of the same type as the ones considered in the shadow-rate literature (see @Black_1995). In that case, one could for instance use the approaches proposed by @Priebsch_2013 or @Wu_Xia_2016 to calculate approximations for these conditional expectations. @Pallara_Renne_2023 and @Renne_Pallara_2023 extend the approach of @Wu_Xia_2016 to compute approximate values to \@ref(eq:condExp). Th present page uses the latter approach, employing codes contained in package `TSModels` to implement this approach.
 
